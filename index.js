@@ -66,6 +66,7 @@ const resolvers = {
     //() => persons.length,
     personCount: () => Person.collection.countDocuments(),
     allPersons: async (root, args) => {
+      // falta el filtro de phone
       return Person.find({});
 
       //  if (!args.phone) return persons;
