@@ -68,7 +68,6 @@ const resolvers = {
 
       const byPhone = person =>
         args.phone === "YES" ? person.phone : !person.phone;
-      console.log(args.phone);
       return persons.filter(byPhone);
 
       // return persons
@@ -92,6 +91,18 @@ const resolvers = {
       const person = { ...args, id: uuid() };
       persons.push(person);
       return person;
+    },
+    editNumber: (root, args) => {
+      const personIndex = persons.findIndex(p => p.name === args.name);
+      if (personIndex === -1) return null;
+      const person = persons[personIndex];
+
+      const updatedPerson = {
+        ...person,
+        phone: args.phone,
+      };
+      persons[personIndex] = updatedPerson;
+      return updatedPerson;
     },
   },
   Person: {
