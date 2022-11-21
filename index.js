@@ -1,8 +1,9 @@
 import { gql } from "apollo-server";
 import { ApolloServer, UserInputError } from "apollo-server";
-import { v1 as uuid } from "uuid";
+import "./db.js";
+import Person from "./models/persona.js";
 
-const persons = [
+/* const persons = [
   {
     name: "Midu",
     phone: "034-123456",
@@ -23,7 +24,7 @@ const persons = [
     city: "Ibiza",
     id: "3d594650-343611e9-bc57-8b88ba54c431",
   },
-];
+]; */
 
 const typeDefinitions = gql`
   enum YesNo {
@@ -62,13 +63,16 @@ const typeDefinitions = gql`
 
 const resolvers = {
   Query: {
-    personCount: () => persons.length,
+    //() => persons.length,
+    personCount: () => Person.collection.countDocuments(),
     allPersons: async (root, args) => {
-      if (!args.phone) return persons;
+      return Person.find({});
 
-      const byPhone = person =>
-        args.phone === "YES" ? person.phone : !person.phone;
-      return persons.filter(byPhone);
+      //  if (!args.phone) return persons;
+
+      // const byPhone = person =>
+      // args.phone === "YES" ? person.phone : !person.phone;
+      // return persons.filter(byPhone);
 
       // return persons
       // .filter(person=> {
@@ -77,32 +81,19 @@ const resolvers = {
     },
     findPerson: (root, args) => {
       const { name } = args;
-      return persons.find(persons => persons.name === name);
+      //return persons.find(persons => persons.name === name);
+      return Person.findOne({ name });
     },
   },
   Mutation: {
     addPerson: (root, args) => {
-      if (persons.find(p => p.name === args.name)) {
-        throw new UserInputError("Name must be unique", {
-          invalidArgs: args.name,
-        });
-      }
-      // const {name, phone, street, city} = args
-      const person = { ...args, id: uuid() };
-      persons.push(person);
-      return person;
+      const person = new Person({ ...args });
+      return person.save();
     },
-    editNumber: (root, args) => {
-      const personIndex = persons.findIndex(p => p.name === args.name);
-      if (personIndex === -1) return null;
-      const person = persons[personIndex];
-
-      const updatedPerson = {
-        ...person,
-        phone: args.phone,
-      };
-      persons[personIndex] = updatedPerson;
-      return updatedPerson;
+    editNumber: async (root, args) => {
+      const person = await Person.findOne({ name: args.name });
+      person.phone = args.phone;
+      return person.save();
     },
   },
   Person: {
